@@ -41,32 +41,51 @@ public class RecordRestController {
         return new ResponseEntity<>(recordService.allRecords(), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getRecordById(@PathVariable ObjectId id){
-        return new ResponseEntity<>(recordService.recordById(id), HttpStatus.OK);
+    @GetMapping("/{plate}")
+    public ResponseEntity<?> getRecordByVehicle(@PathVariable String plate){
+
+        Record record;
+
+        Map<String, Object> response = new HashMap<>();
+
+        Vehicle vehicle = vehicleService.vehicleByPlate(plate);
+
+        try {
+            record = recordService.recordByVehicle(vehicle);
+        } catch(DataAccessException e) {
+            response.put("Message", "An error occurred during the query.");
+            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if(vehicle == null) {
+            response.put("Message", "The entered plate ".concat(plate.toString().concat(" doesn't exist in the database.")));
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+        }
+
+        response.put("record", record);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
     @PostMapping
     public ResponseEntity<?> addRecord(@RequestBody Record record){
 
-        Client client = record.getClient();
-
-        Vehicle vehicle = record.getVehicle();
-
-        Campus campus = record.getCampus();
+        Client client = clientService.clientById(record.getClient().toString());
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            record.setCampus(campus);
+            record.setCampus(record.getCampus());
             record.setDescription(record.getDescription());
-            record.setClient(client);
-            record.setVehicle(vehicle);
+            record.setClient(record.getClient());
+            record.setVehicle(record.getVehicle());
             record.setParts(record.getParts());
             record.setStartTime(record.getStartTime());
             record.setEndTime(record.getEndTime());
 
             recordService.saveRecord(record);
+            /*notificationService.sendSMS("+57"+client.getPhoneNum(), "Bienvenido(a) " + client.getName() + " a Gear Guardians.");*/
         }catch(DataAccessException e) {
             response.put("Message", "An error occurred during the query.");
             response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
@@ -74,11 +93,12 @@ public class RecordRestController {
         }
 
         response.put("Message", "The record has been successfully created.");
+        response.put("Record", record);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateRecord(@RequestBody Record record, @PathVariable ObjectId id) {
+    public ResponseEntity<?> updateRecord(@RequestBody Record record, @PathVariable String id) {
 
         Record foundRecord = recordService.recordById(id);
 
@@ -117,7 +137,7 @@ public class RecordRestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteRecord(@PathVariable ObjectId id) {
+    public ResponseEntity<?> deleteRecord(@PathVariable String id) {
 
         Record foundRecord = recordService.recordById(id);
 

@@ -23,7 +23,7 @@ public class ClientService {
         return ejemplos;
     }
 
-    public Client clientById(ObjectId id){
+    public Client clientById(String id){
         return clientRepository.findById(id).orElse(null);
     }
 
@@ -31,7 +31,7 @@ public class ClientService {
         return clientRepository.save(client);
     }
 
-    public void delete(ObjectId id){
+    public void delete(String id){
         clientRepository.deleteById(id);
     }
 

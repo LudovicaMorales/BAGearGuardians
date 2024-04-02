@@ -15,10 +15,10 @@ public class CampusService {
     private CampusRepository campusRepository;
 
     public List<Campus> allCampus(){
-        return (List<Campus>) campusRepository.findAll();
+        return campusRepository.findAll();
     }
 
-    public Campus campusById(ObjectId id){
+    public Campus campusById(String id){
         return campusRepository.findById(id).orElse(null);
     }
 
@@ -26,7 +26,7 @@ public class CampusService {
         return campusRepository.save(campus);
     }
 
-    public void deleteCampus(ObjectId id){
+    public void deleteCampus(String id){
         campusRepository.deleteById(id);
     }
 }

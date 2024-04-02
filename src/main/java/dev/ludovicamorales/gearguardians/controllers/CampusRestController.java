@@ -27,7 +27,7 @@ public class CampusRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCampusById(@PathVariable ObjectId id) {
+    public ResponseEntity<?> getCampusById(@PathVariable String id) {
 
         Campus campus;
 

@@ -3,7 +3,6 @@ package dev.ludovicamorales.gearguardians.models;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,16 +12,21 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 public class Vehicle {
 
+
+
     @Id
-    private ObjectId id;
 
-    private String chasis;
+    private String id;
 
-    private String placa;
+    private String chassis;
 
-    private String marca;
+    private String plate;
 
-    private String modelo;
+    private String brand;
 
-    private Integer kilometraje;
+    private String model;
+
+    private Integer year;
+
+    private Integer mileage;
 }

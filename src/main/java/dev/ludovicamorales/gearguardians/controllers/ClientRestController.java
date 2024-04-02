@@ -2,12 +2,11 @@ package dev.ludovicamorales.gearguardians.controllers;
 
 import dev.ludovicamorales.gearguardians.models.Client;
 import dev.ludovicamorales.gearguardians.models.DocType;
-import dev.ludovicamorales.gearguardians.models.Vehicle;
 import dev.ludovicamorales.gearguardians.services.ClientService;
-import dev.ludovicamorales.gearguardians.services.VehicleService;
-import org.bson.types.ObjectId;
+import dev.ludovicamorales.gearguardians.services.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,7 @@ public class ClientRestController {
     private ClientService clientService;
 
     @Autowired
-    private VehicleService vehicleService;
+    private NotificationService notificationService;
 
     @GetMapping
     public ResponseEntity<List<Client>> getAllClients(){
@@ -33,7 +32,7 @@ public class ClientRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getClientById(@PathVariable ObjectId id){
+    public ResponseEntity<?> getClientById(@PathVariable String id){
         return new ResponseEntity<Client>(clientService.clientById(id), HttpStatus.OK);
     }
 
@@ -44,8 +43,6 @@ public class ClientRestController {
 
         Map<String, Object> response = new HashMap<>();
 
-        List<Vehicle> vehicles = client.getVehicles();
-
         try {
             newClient.setName(client.getName());
             newClient.setLastname(client.getLastname());
@@ -53,22 +50,24 @@ public class ClientRestController {
             newClient.setDocType(client.getDocType());
             newClient.setDocNum(client.getDocNum());
             newClient.setPhoneNum(client.getPhoneNum());
-            newClient.setVehicles(vehicles);
             newClient.setCreateAt(LocalDateTime.now());
 
             newClient = clientService.saveClient(newClient);
+            notificationService.sendSMS("+57"+client.getPhoneNum(), "Bienvenido(a) " + client.getName() + " a Gear Guardians.");
+
         }catch(DataAccessException e) {
             response.put("Message", "An error occurred during the query.");
             response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The vehicle has been successfully created.");
+        response.put("Message", "The client has been successfully created.");
+        response.put("Client", newClient);
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateClient(@RequestBody Client client, @PathVariable ObjectId id) {
+    public ResponseEntity<?> updateClient(@RequestBody Client client, @PathVariable String id) {
 
         Client foundClient = clientService.clientById(id);
 
@@ -88,7 +87,6 @@ public class ClientRestController {
             updateClient.setDocType(client.getDocType());
             updateClient.setDocNum(client.getDocNum());
             updateClient.setPhoneNum(client.getPhoneNum());
-            updateClient.setVehicles(client.getVehicles());
 
             updateClient = clientService.saveClient(updateClient);
 
@@ -106,7 +104,7 @@ public class ClientRestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteClient(@PathVariable ObjectId id) {
+    public ResponseEntity<?> deleteClient(@PathVariable String id) {
 
         Client foundClient = clientService.clientById(id);
 

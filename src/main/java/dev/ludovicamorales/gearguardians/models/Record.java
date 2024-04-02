@@ -18,7 +18,7 @@ import java.util.List;
 public class Record {
 
     @Id
-    private ObjectId id;
+    private String id;
 
     @DocumentReference(lazy = true)
     private Client client;

@@ -24,15 +24,15 @@ public class VehicleRestController {
         return new ResponseEntity<List<Vehicle>>(vehicleService.allVehicles(), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getVehicleById(@PathVariable ObjectId id) {
+    @GetMapping("/{plate}")
+    public ResponseEntity<?> getVehicleByPlate(@PathVariable String plate) {
 
         Vehicle vehicle = null;
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            vehicle = vehicleService.vehicleById(id);
+            vehicle = vehicleService.vehicleByPlate(plate);
         } catch(DataAccessException e) {
             response.put("Message", "An error occurred during the query.");
             response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
@@ -40,7 +40,7 @@ public class VehicleRestController {
         }
 
         if(vehicle == null) {
-            response.put("Message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
+            response.put("Message", "The entered id ".concat(plate.toString().concat(" doesn't exist in the database.")));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
         }
 
