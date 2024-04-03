@@ -4,6 +4,7 @@ import dev.ludovicamorales.gearguardians.models.Client;
 import dev.ludovicamorales.gearguardians.models.DocType;
 import dev.ludovicamorales.gearguardians.services.ClientService;
 import dev.ludovicamorales.gearguardians.services.NotificationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -11,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,7 +37,7 @@ public class ClientRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addClient(@RequestBody Client client){
+    public ResponseEntity<?> addClient(@Valid @RequestBody Client client){
 
         Client newClient = client;
 
@@ -50,10 +50,9 @@ public class ClientRestController {
             newClient.setDocType(client.getDocType());
             newClient.setDocNum(client.getDocNum());
             newClient.setPhoneNum(client.getPhoneNum());
-            newClient.setCreateAt(LocalDateTime.now());
 
             newClient = clientService.saveClient(newClient);
-            notificationService.sendSMS("+57"+client.getPhoneNum(), "Bienvenido(a) " + client.getName() + " a Gear Guardians.");
+            /*notificationService.sendSMS("+57"+client.getPhoneNum(), "Bienvenido(a) " + client.getName() + " a Gear Guardians.");*/
 
         }catch(DataAccessException e) {
             response.put("Message", "An error occurred during the query.");
@@ -67,7 +66,7 @@ public class ClientRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateClient(@RequestBody Client client, @PathVariable String id) {
+    public ResponseEntity<?> updateClient(@Valid @RequestBody Client client, @PathVariable String id) {
 
         Client foundClient = clientService.clientById(id);
 

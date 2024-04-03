@@ -6,7 +6,7 @@ import dev.ludovicamorales.gearguardians.services.CampusService;
 import dev.ludovicamorales.gearguardians.services.ClientService;
 import dev.ludovicamorales.gearguardians.services.RecordService;
 import dev.ludovicamorales.gearguardians.services.VehicleService;
-import org.bson.types.ObjectId;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -69,7 +69,7 @@ public class RecordRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addRecord(@RequestBody Record record){
+    public ResponseEntity<?> addRecord(@Valid @RequestBody Record record){
 
         Client client = clientService.clientById(record.getClient().toString());
 
@@ -98,7 +98,7 @@ public class RecordRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateRecord(@RequestBody Record record, @PathVariable String id) {
+    public ResponseEntity<?> updateRecord(@Valid @RequestBody Record record, @PathVariable String id) {
 
         Record foundRecord = recordService.recordById(id);
 

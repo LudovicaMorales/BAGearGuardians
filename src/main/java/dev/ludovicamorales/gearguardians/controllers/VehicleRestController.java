@@ -2,7 +2,7 @@ package dev.ludovicamorales.gearguardians.controllers;
 
 import dev.ludovicamorales.gearguardians.models.Vehicle;
 import dev.ludovicamorales.gearguardians.services.VehicleService;
-import org.bson.types.ObjectId;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -48,7 +48,7 @@ public class VehicleRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addVehicle(@RequestBody Vehicle vehicle){
+    public ResponseEntity<?> addVehicle(@Valid @RequestBody Vehicle vehicle){
 
         Vehicle newVehicle = null;
 
