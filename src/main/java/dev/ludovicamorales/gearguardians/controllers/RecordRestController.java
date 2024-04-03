@@ -104,8 +104,9 @@ public class RecordRestController {
             recordService.saveRecord(record);
             
             notificationService.sendSMS("+57"+client.getPhoneNum(),
-                    "¡Hola "+client.getName()+"! Tu cita para " + record.getServiceType()+" de tu " + vehicle.getBrand() + vehicle.getModel() + 
-                            "está confirmada para el " + record.getStartTime() + " en " + campus.getName() + ". ¡Te esperamos! ");
+                    "¡Hola, "+client.getName()+"! Tu cita para " + record.getServiceType()+" de tu " + vehicle.getBrand() + " " +vehicle.getModel() +
+                            " está confirmada para el día " + record.getStartTime().toLocalDate() + " a las " + record.getStartTime().toLocalTime() + " en nuestro " + campus.getName() +
+                            ". ¡Te esperamos!");
             
         }catch(DataAccessException e) {
             response.put("message", "An error occurred during the query.");
@@ -149,49 +150,34 @@ public class RecordRestController {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
 
-        Record updateRecord = null;
-
         try {
-            updateRecord.setCampus(campus);
-            updateRecord.setDescription(record.getDescription());
-            updateRecord.setClient(client);
-            updateRecord.setVehicle(vehicle);
-            updateRecord.setParts(record.getParts());
-            updateRecord.setStartTime(record.getStartTime());
-            updateRecord.setEndTime(record.getEndTime());
-            updateRecord.setStatus(record.getStatus());
+            foundRecord.setCampus(campus);
+            foundRecord.setDescription(record.getDescription());
+            foundRecord.setClient(client);
+            foundRecord.setVehicle(vehicle);
+            foundRecord.setParts(record.getParts());
+            foundRecord.setStartTime(record.getStartTime());
+            foundRecord.setEndTime(record.getEndTime());
+            foundRecord.setStatus(record.getStatus());
 
-            recordService.saveRecord(updateRecord);
+            recordService.saveRecord(foundRecord);
 
             switch (record.getStatus()) {
-                case Autorización:
-                    notificationService.sendSMS("+57"+client.getPhoneNum(),
-                            "GearGuardians: El servicio de mantenimiento se encuentra en autorización. Te " +
-                                    "mantendremos al " +
-                                    "tanto.");
-                    break;
-                case Repuestos:
-                    notificationService.sendSMS("+57"+client.getPhoneNum(),
-                            "GearGuardians: Tu moto está en espera de repuestos. Te avisaremos cuando los recibamos.");
-                    break;
-                case Externo:
-                    notificationService.sendSMS("+57"+client.getPhoneNum(),
-                            "GearGuardians: Tu moto está recibiendo un servicio externo por parte de nuestros aliados" +
-                                    ". Te informaremos sobre el progreso.");
-                    break;
-                case Reparación:
-                    notificationService.sendSMS("+57"+client.getPhoneNum(),
-                            "¡Tu moto está lista para ser recogida! Gracias por confiar en GearGuardians.");
-                    break;
-                case Completado:
-                    notificationService.sendSMS("+57"+client.getPhoneNum(),
-                            "¡Gracias por confiar en nosotros! Te informamos que tu moto ya está lista para ser " +
-                                    "recogida.");
-                    break;
-                case Cancelado:
-                    notificationService.sendSMS("+57"+client.getPhoneNum(),
-                            "Lamentamos informar que tu cita para el mantenimiento de moto ha sido cancelada. Te invitamos a reprogramarla cuando te sea posible.");
-                    break;
+                case Autorización -> notificationService.sendSMS("+57" + client.getPhoneNum(),
+                        "GearGuardians: El servicio de mantenimiento se encuentra en autorización. Te " +
+                                "mantendremos al tanto.");
+                case Repuestos -> notificationService.sendSMS("+57" + client.getPhoneNum(),
+                        "GearGuardians: Tu moto está en espera de repuestos. Te avisaremos cuando los recibamos.");
+                case Externo -> notificationService.sendSMS("+57" + client.getPhoneNum(),
+                        "GearGuardians: Tu moto está recibiendo un servicio externo por parte de nuestros aliados" +
+                                ". Te informaremos sobre el progreso.");
+                case Reparación -> notificationService.sendSMS("+57" + client.getPhoneNum(),
+                        "¡Tu moto está lista para ser recogida! Gracias por confiar en GearGuardians.");
+                case Completado -> notificationService.sendSMS("+57" + client.getPhoneNum(),
+                        "¡Gracias por confiar en nosotros! Te informamos que tu moto ya está lista para ser " +
+                                "recogida.");
+                case Cancelado -> notificationService.sendSMS("+57" + client.getPhoneNum(),
+                        "Lamentamos informar que tu cita para el mantenimiento de moto ha sido cancelada. Te invitamos a reprogramarla cuando te sea posible.");
             }
 
         } catch(DataAccessException e) {
@@ -201,7 +187,7 @@ public class RecordRestController {
         }
 
         response.put("message", "The record has been successfully upgraded.");
-        response.put("record", updateRecord);
+        response.put("record", foundRecord);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
 
