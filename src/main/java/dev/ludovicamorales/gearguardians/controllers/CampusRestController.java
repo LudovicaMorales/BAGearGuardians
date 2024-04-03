@@ -2,6 +2,7 @@ package dev.ludovicamorales.gearguardians.controllers;
 
 import dev.ludovicamorales.gearguardians.models.Campus;
 import dev.ludovicamorales.gearguardians.services.CampusService;
+import jakarta.validation.Valid;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -36,13 +37,13 @@ public class CampusRestController {
         try {
             campus = campusService.campusById(id);
         } catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if(campus == null) {
-            response.put("Message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
+            response.put("message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
 
@@ -50,7 +51,7 @@ public class CampusRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addCampus(@RequestBody Campus campus){
+    public ResponseEntity<?> addCampus(@Valid @RequestBody Campus campus){
 
         Campus newCampus;
 
@@ -59,13 +60,13 @@ public class CampusRestController {
         try {
             newCampus = campusService.saveCampus(campus);
         }catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The campus has been successfully created.");
-        response.put("Vehicle", newCampus);
+        response.put("message", "The campus has been successfully created.");
+        response.put("campus", newCampus);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }

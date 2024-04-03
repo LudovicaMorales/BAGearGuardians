@@ -34,13 +34,13 @@ public class VehicleRestController {
         try {
             vehicle = vehicleService.vehicleByPlate(plate);
         } catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if(vehicle == null) {
-            response.put("Message", "The entered id ".concat(plate.toString().concat(" doesn't exist in the database.")));
+            response.put("message", "The entered id ".concat(plate.toString().concat(" doesn't exist in the database.")));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
         }
 
@@ -57,13 +57,13 @@ public class VehicleRestController {
         try {
             newVehicle = vehicleService.saveVehicle(vehicle);
         }catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The vehicle has been successfully created.");
-        response.put("Vehicle", newVehicle);
+        response.put("message", "The vehicle has been successfully created.");
+        response.put("vehicle", newVehicle);
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
     }
 }

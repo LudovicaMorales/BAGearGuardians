@@ -55,13 +55,13 @@ public class ClientRestController {
             /*notificationService.sendSMS("+57"+client.getPhoneNum(), "Bienvenido(a) " + client.getName() + " a Gear Guardians.");*/
 
         }catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
+            response.put("message", "An error occurred during the query.");
             response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The client has been successfully created.");
-        response.put("Client", newClient);
+        response.put("message", "The client has been successfully created.");
+        response.put("client", newClient);
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
     }
 
@@ -73,7 +73,7 @@ public class ClientRestController {
         Map<String, Object> response = new HashMap<>();
 
         if(foundClient == null) {
-            response.put("Message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
+            response.put("message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
         }
 
@@ -90,13 +90,13 @@ public class ClientRestController {
             updateClient = clientService.saveClient(updateClient);
 
         } catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The client has been successfully upgraded.");
-        response.put("Client", updateClient);
+        response.put("message", "The client has been successfully upgraded.");
+        response.put("client", updateClient);
 
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 
@@ -110,19 +110,19 @@ public class ClientRestController {
         Map<String, Object> response = new HashMap<>();
 
         if(foundClient == null) {
-            response.put("Message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
+            response.put("message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
         }
 
         try {
             clientService.delete(id);
         }catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
+            response.put("message", "An error occurred during the query.");
             response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The client has been successfully deleted.");
+        response.put("message", "The client has been successfully deleted.");
 
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 

@@ -1,11 +1,12 @@
 package dev.ludovicamorales.gearguardians.models;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -35,7 +36,8 @@ public class Vehicle {
     private String model;
 
     @NotNull(message = "The 'year' field is required")
-    @Length(min = 4, max = 4, message = "The 'year' field must be 4 characters long")
+    @Min(value = 1900, message = "The field 'year' must be between 1900 and 2025")
+    @Max(value = 2025, message = "The field 'year' must be between 1900 and 2025")
     private Integer year;
 
     @NotNull(message = "The 'mileage' field is required")

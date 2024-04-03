@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Document(collection = "records")
@@ -23,12 +24,10 @@ public class Record {
 
     @DocumentReference(lazy = true)
     @NotNull(message = "The 'client' field is required")
-    @NotBlank(message = "The 'client' field is required")
     private Client client;
 
     @DocumentReference(lazy = true)
     @NotNull(message = "The 'vehicle' field is required")
-    @NotBlank(message = "The 'vehicle' field is required")
     private Vehicle vehicle;
 
     @NotNull(message = "The 'serviceType' field is required")
@@ -37,7 +36,6 @@ public class Record {
     @NotNull(message = "The 'campus' field is required")
     private Campus campus;
 
-    @NotNull(message = "The 'status' field is required")
     private Status status;
 
     @NotNull(message = "The 'description' field is required")
@@ -48,8 +46,12 @@ public class Record {
     private List<Parts> parts;
 
     @NotNull(message = "The 'startTime' field is required")
-    @NotBlank(message = "The 'startTime' field is required")
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+        this.endTime = startTime.plus(2, ChronoUnit.DAYS);
+    }
 }

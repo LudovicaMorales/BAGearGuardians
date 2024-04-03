@@ -2,10 +2,7 @@ package dev.ludovicamorales.gearguardians.controllers;
 
 import dev.ludovicamorales.gearguardians.models.*;
 import dev.ludovicamorales.gearguardians.models.Record;
-import dev.ludovicamorales.gearguardians.services.CampusService;
-import dev.ludovicamorales.gearguardians.services.ClientService;
-import dev.ludovicamorales.gearguardians.services.RecordService;
-import dev.ludovicamorales.gearguardians.services.VehicleService;
+import dev.ludovicamorales.gearguardians.services.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -35,6 +32,9 @@ public class RecordRestController {
 
     @Autowired
     private CampusService campusService;
+    
+    @Autowired
+    private NotificationService notificationService;
 
     @GetMapping
     public ResponseEntity<List<Record>> getAllRecords(){
@@ -53,14 +53,14 @@ public class RecordRestController {
         try {
             record = recordService.recordByVehicle(vehicle);
         } catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if(vehicle == null) {
-            response.put("Message", "The entered plate ".concat(plate.toString().concat(" doesn't exist in the database.")));
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+            response.put("message", "The entered plate ".concat(plate.concat(" doesn't exist in the database.")));
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
 
         response.put("record", record);
@@ -71,29 +71,50 @@ public class RecordRestController {
     @PostMapping
     public ResponseEntity<?> addRecord(@Valid @RequestBody Record record){
 
-        Client client = clientService.clientById(record.getClient().toString());
+        Client client = clientService.clientById(record.getClient().getId());
+        Vehicle vehicle = vehicleService.vehicleById(record.getVehicle().getId());
+        Campus campus = campusService.campusById(record.getCampus().getId());
 
         Map<String, Object> response = new HashMap<>();
 
+        if(client == null) {
+            response.put("message", "The entered client id doesn't exist in the database.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        if(vehicle == null) {
+            response.put("message", "The entered vehicle id doesn't exist in the database.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        if(campus == null) {
+            response.put("message", "The entered campus id doesn't exist in the database.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
         try {
-            record.setCampus(record.getCampus());
+            record.setCampus(campus);
             record.setDescription(record.getDescription());
-            record.setClient(record.getClient());
-            record.setVehicle(record.getVehicle());
+            record.setClient(client);
+            record.setVehicle(vehicle);
+            record.setStatus(Status.valueOf("Asignación"));
             record.setParts(record.getParts());
             record.setStartTime(record.getStartTime());
-            record.setEndTime(record.getEndTime());
 
             recordService.saveRecord(record);
-            /*notificationService.sendSMS("+57"+client.getPhoneNum(), "Bienvenido(a) " + client.getName() + " a Gear Guardians.");*/
+            
+            notificationService.sendSMS("+57"+client.getPhoneNum(),
+                    "¡Hola "+client.getName()+"! Tu cita para " + record.getServiceType()+" de tu " + vehicle.getBrand() + vehicle.getModel() + 
+                            "está confirmada para el " + record.getStartTime() + " en " + campus.getName() + ". ¡Te esperamos! ");
+            
         }catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The record has been successfully created.");
-        response.put("Record", record);
+        response.put("message", "The record has been successfully created.");
+        response.put("record", record);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -102,35 +123,85 @@ public class RecordRestController {
 
         Record foundRecord = recordService.recordById(id);
 
-        Client client = record.getClient();
+        Client client = clientService.clientById(record.getClient().getId());
+        Vehicle vehicle = vehicleService.vehicleById(record.getVehicle().getId());
+        Campus campus = campusService.campusById(record.getCampus().getId());
 
         Map<String, Object> response = new HashMap<>();
 
         if(foundRecord == null) {
-            response.put("Message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
+            response.put("message", "The entered id ".concat(id.concat(" doesn't exist in the database.")));
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        if(client == null) {
+            response.put("message", "The entered client id doesn't exist in the database.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        if(vehicle == null) {
+            response.put("message", "The entered vehicle id doesn't exist in the database.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        if(campus == null) {
+            response.put("message", "The entered campus id doesn't exist in the database.");
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
 
         Record updateRecord = null;
 
         try {
-            updateRecord.setCampus(record.getCampus());
+            updateRecord.setCampus(campus);
             updateRecord.setDescription(record.getDescription());
             updateRecord.setClient(client);
+            updateRecord.setVehicle(vehicle);
             updateRecord.setParts(record.getParts());
             updateRecord.setStartTime(record.getStartTime());
             updateRecord.setEndTime(record.getEndTime());
+            updateRecord.setStatus(record.getStatus());
 
             recordService.saveRecord(updateRecord);
 
+            switch (record.getStatus()) {
+                case Autorización:
+                    notificationService.sendSMS("+57"+client.getPhoneNum(),
+                            "GearGuardians: El servicio de mantenimiento se encuentra en autorización. Te " +
+                                    "mantendremos al " +
+                                    "tanto.");
+                    break;
+                case Repuestos:
+                    notificationService.sendSMS("+57"+client.getPhoneNum(),
+                            "GearGuardians: Tu moto está en espera de repuestos. Te avisaremos cuando los recibamos.");
+                    break;
+                case Externo:
+                    notificationService.sendSMS("+57"+client.getPhoneNum(),
+                            "GearGuardians: Tu moto está recibiendo un servicio externo por parte de nuestros aliados" +
+                                    ". Te informaremos sobre el progreso.");
+                    break;
+                case Reparación:
+                    notificationService.sendSMS("+57"+client.getPhoneNum(),
+                            "¡Tu moto está lista para ser recogida! Gracias por confiar en GearGuardians.");
+                    break;
+                case Completado:
+                    notificationService.sendSMS("+57"+client.getPhoneNum(),
+                            "¡Gracias por confiar en nosotros! Te informamos que tu moto ya está lista para ser " +
+                                    "recogida.");
+                    break;
+                case Cancelado:
+                    notificationService.sendSMS("+57"+client.getPhoneNum(),
+                            "Lamentamos informar que tu cita para el mantenimiento de moto ha sido cancelada. Te invitamos a reprogramarla cuando te sea posible.");
+                    break;
+            }
+
         } catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The record has been successfully upgraded.");
-        response.put("Record", updateRecord);
+        response.put("message", "The record has been successfully upgraded.");
+        response.put("record", updateRecord);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
 
@@ -144,19 +215,19 @@ public class RecordRestController {
         Map<String, Object> response = new HashMap<>();
 
         if(foundRecord == null) {
-            response.put("Message", "The entered id ".concat(id.toString().concat(" doesn't exist in the database.")));
+            response.put("message", "The entered id ".concat(id.concat(" doesn't exist in the database.")));
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
 
         try {
             recordService.deleteRecord(id);
         }catch(DataAccessException e) {
-            response.put("Message", "An error occurred during the query.");
-            response.put("Error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+            response.put("message", "An error occurred during the query.");
+            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("Message", "The record has been successfully deleted.");
+        response.put("message", "The record has been successfully deleted.");
 
         return new ResponseEntity<>(response, HttpStatus.OK);
 

@@ -1,5 +1,5 @@
 package dev.ludovicamorales.gearguardians.models;
 
 public enum Status {
-    Asignación, Autorización, Repuestos, Externo, Reparacióm, Completado, Cancelado
+    Asignación, Autorización, Repuestos, Externo, Reparación, Completado, Cancelado
 }
